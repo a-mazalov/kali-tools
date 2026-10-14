@@ -26,11 +26,11 @@ class ConfirmProductionDatabaseCommand
      */
     public function handle(CommandStarting $event): void
     {
-        if (! $this->config->get('kali-tools.production_database_guard.enabled', true)) {
+        if (! $this->config->get('kali-tools.database_guard.enabled', true)) {
             return;
         }
 
-        if (! in_array($event->command, (array) $this->config->get('kali-tools.production_database_guard.commands', []), true)) {
+        if (! in_array($event->command, (array) $this->config->get('kali-tools.database_guard.commands', []), true)) {
             return;
         }
 
@@ -40,36 +40,36 @@ class ConfirmProductionDatabaseCommand
         $settings = (array) $this->config->get("database.connections.{$connection}", []);
 
         $hosts = $this->hosts($settings);
-        $services = $this->services($settings);
+        $databases = $this->databases($settings);
 
-        if (! $this->isProduction($hosts, $services)) {
+        if (! $this->isProduction($hosts, $databases)) {
             return;
         }
 
         $output = $this->app->make(OutputStyle::class, ['input' => $event->input, 'output' => $event->output]);
         $components = $this->app->make(Factory::class, ['output' => $output]);
 
-        $components->warn(trans('kali-tools::messages.production_database_guard.warning', ['command' => $event->command]));
+        $components->warn(trans('kali-tools::messages.database_guard.warning', ['command' => $event->command]));
 
-        $components->twoColumnDetail(trans('kali-tools::messages.production_database_guard.connection'), $connection);
-        $components->twoColumnDetail(trans('kali-tools::messages.production_database_guard.username'), $this->stringValue($settings['username'] ?? null));
-        $components->twoColumnDetail(trans('kali-tools::messages.production_database_guard.database'), implode(', ', $services) ?: '-');
-        $components->twoColumnDetail(trans('kali-tools::messages.production_database_guard.host'), implode(', ', $hosts) ?: '-');
+        $components->twoColumnDetail(trans('kali-tools::messages.database_guard.connection'), $connection);
+        $components->twoColumnDetail(trans('kali-tools::messages.database_guard.username'), $this->stringValue($settings['username'] ?? null));
+        $components->twoColumnDetail(trans('kali-tools::messages.database_guard.database'), implode(', ', $databases) ?: '-');
+        $components->twoColumnDetail(trans('kali-tools::messages.database_guard.host'), implode(', ', $hosts) ?: '-');
         $output->newLine();
 
-        if ($this->config->get('kali-tools.production_database_guard.allow_force', false)
+        if ($this->config->get('kali-tools.database_guard.allow_force', false)
             && $event->input->hasOption('force')
             && $event->input->getOption('force')) {
             return;
         }
 
         if ($event->input->isInteractive()
-            && $output->confirm(trans('kali-tools::messages.production_database_guard.question'), false)) {
+            && $output->confirm(trans('kali-tools::messages.database_guard.question'), false)) {
             return;
         }
 
         throw new ProductionDatabaseCommandAborted(
-            trans('kali-tools::messages.production_database_guard.aborted', ['command' => $event->command]),
+            trans('kali-tools::messages.database_guard.aborted', ['command' => $event->command]),
         );
     }
 
@@ -86,54 +86,68 @@ class ConfirmProductionDatabaseCommand
     }
 
     /**
-     * Determine if any host or service matches the configured production list.
+     * Determine if any host or database matches the configured production list.
      *
      * @param  list<string>  $hosts
-     * @param  list<string>  $services
+     * @param  list<string>  $databases
      */
-    protected function isProduction(array $hosts, array $services): bool
+    protected function isProduction(array $hosts, array $databases): bool
     {
         $normalize = fn (mixed $values): array => array_map(
             fn (mixed $value): string => mb_strtolower($this->stringValue($value)),
             (array) $values,
         );
 
-        return array_intersect($normalize($hosts), $normalize($this->config->get('kali-tools.production_database_guard.hosts', []))) !== []
-            || array_intersect($normalize($services), $normalize($this->config->get('kali-tools.production_database_guard.services', []))) !== [];
+        return array_intersect($normalize($hosts), $normalize($this->config->get('kali-tools.database_guard.hosts', []))) !== []
+            || array_intersect($normalize($databases), $normalize($this->config->get('kali-tools.database_guard.databases', []))) !== [];
     }
 
     /**
-     * Collect hosts from the connection, including read/write replicas and Oracle TNS descriptors.
+     * Collect hosts from the fields configured for the connection's driver.
      *
      * @param  array<string, mixed>  $settings
      * @return list<string>
      */
     protected function hosts(array $settings): array
     {
-        $hosts = [
-            ...(array) ($settings['host'] ?? []),
-            ...(array) Arr::get($settings, 'read.host', []),
-            ...(array) Arr::get($settings, 'write.host', []),
-            ...$this->tnsValues($settings, 'HOST'),
-        ];
-
-        return $this->unique($hosts);
+        return $this->values($settings, 'hosts');
     }
 
     /**
-     * Collect service names, SIDs, and database names from the connection.
+     * Collect service names, SIDs, and database names from the fields configured for the connection's driver.
      *
      * @param  array<string, mixed>  $settings
      * @return list<string>
      */
-    protected function services(array $settings): array
+    protected function databases(array $settings): array
     {
-        return $this->unique([
-            $settings['service_name'] ?? null,
-            $settings['database'] ?? null,
-            ...$this->tnsValues($settings, 'SERVICE_NAME'),
-            ...$this->tnsValues($settings, 'SID'),
-        ]);
+        return $this->values($settings, 'databases');
+    }
+
+    /**
+     * Read the values of the configured fields, e.g. `host`, `read.host`, or `tns:HOST`.
+     *
+     * @param  array<string, mixed>  $settings
+     * @return list<string>
+     */
+    protected function values(array $settings, string $group): array
+    {
+        $driver = $this->stringValue($settings['driver'] ?? null);
+
+        $fields = $this->config->get("kali-tools.database_guard.fields.{$driver}.{$group}")
+            ?? $this->config->get("kali-tools.database_guard.fields.default.{$group}", []);
+
+        $values = [];
+
+        foreach ((array) $fields as $field) {
+            $field = $this->stringValue($field);
+
+            array_push($values, ...(str_starts_with($field, 'tns:')
+                ? $this->tnsValues($settings, substr($field, 4))
+                : (array) Arr::get($settings, $field, [])));
+        }
+
+        return $this->unique($values);
     }
 
     /**
@@ -146,7 +160,7 @@ class ConfirmProductionDatabaseCommand
     {
         $tns = $this->stringValue($settings['tns'] ?? null);
 
-        preg_match_all('/\(\s*'.$key.'\s*=\s*([^)\s]+)\s*\)/i', $tns, $matches);
+        preg_match_all('/\(\s*'.preg_quote($key, '/').'\s*=\s*([^)\s]+)\s*\)/i', $tns, $matches);
 
         return $matches[1];
     }

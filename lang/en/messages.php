@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'placeholder' => 'KaliTools placeholder translation.',
 
-    'production_database_guard' => [
+    'database_guard' => [
         'warning' => 'The [:command] command is about to run against a PRODUCTION database.',
         'connection' => 'Connection',
         'username' => 'Username',

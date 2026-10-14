@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'placeholder' => 'KaliTools placeholder translation.',
 
-    'production_database_guard' => [
+    'database_guard' => [
         'warning' => 'Команда [:command] будет выполнена на ПРОДУКТОВОЙ базе данных.',
         'connection' => 'Подключение',
         'username' => 'Пользователь',

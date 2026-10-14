@@ -26,12 +26,13 @@ Use this skill when a Laravel application needs to integrate the Kali Tools pack
 
 The guard is enabled automatically after `composer require a-mazalov/kali-tools`. It asks for an extra confirmation before `migrate`, `migrate:fresh`, `migrate:install`, `migrate:refresh`, `migrate:reset`, `migrate:rollback`, `db:seed`, and `db:wipe` run against a production connection, showing the connection, username, database, and host.
 
-- add production hosts and service names to `.env` (comma-separated, case-insensitive):
+- add production hosts and database names to `.env` (comma-separated, case-insensitive):
   - `KALI_TOOLS_PRODUCTION_DB_HOSTS` matches `host`, `read.host`, `write.host`, and Oracle `tns` `HOST` entries
-  - `KALI_TOOLS_PRODUCTION_DB_SERVICES` matches Oracle `service_name`, `database`, and Oracle `tns` `SERVICE_NAME`/`SID` entries
+  - `KALI_TOOLS_PRODUCTION_DB_DATABASES` matches Oracle `service_name`, `database`, and Oracle `tns` `SERVICE_NAME`/`SID` entries
+  - the checked fields are set per driver in `database_guard.fields` (`mysql`, `mariadb`, `pgsql`, `sqlsrv`, `oracle`, fallback `default`); entries are connection config keys or `tns:KEY`
 - set `KALI_TOOLS_PRODUCTION_DB_ALLOW_FORCE=true` only if deployment pipelines must run `migrate --force` against production without a prompt
 - set `KALI_TOOLS_PRODUCTION_DB_GUARD=false` to disable the guard
-- publish config with `php artisan vendor:publish --tag="kali-tools-config"` to change `production_database_guard.commands`
+- publish config with `php artisan vendor:publish --tag="kali-tools-config"` to change `database_guard.commands`
 
 Declined or non-interactive runs throw `KaliTools\KaliTools\Exceptions\ProductionDatabaseCommandAborted` and exit with a non-zero code before the database is touched.
 
@@ -43,10 +44,10 @@ Read before executing:
 
 ## Examples
 
-- Oracle production behind a TNS descriptor: set `KALI_TOOLS_PRODUCTION_DB_SERVICES=PRODSRV`; `php artisan migrate --database=oracle` now prompts before running.
+- Oracle production behind a TNS descriptor: set `KALI_TOOLS_PRODUCTION_DB_DATABASES=PRODSRV`; `php artisan migrate --database=oracle` now prompts before running.
 - CI deploy that runs `php artisan migrate --force` on production: set `KALI_TOOLS_PRODUCTION_DB_ALLOW_FORCE=true` in the production environment.
 
 ## Anti-patterns
 
 - do not document package internals here; keep the skill focused on adoption in Laravel apps
-- do not call `env()` for the guard lists in app code; use the `kali-tools.production_database_guard.*` config keys
+- do not call `env()` for the guard lists in app code; use the `kali-tools.database_guard.*` config keys

@@ -10,8 +10,8 @@ beforeEach(function () {
     $this->app->make(Kernel::class)->rerouteSymfonyCommandEvents();
 
     config([
-        'kali-tools.production_database_guard.hosts' => ['PROD-DB.example.com'],
-        'kali-tools.production_database_guard.services' => ['PRODSRV'],
+        'kali-tools.database_guard.hosts' => ['PROD-DB.example.com'],
+        'kali-tools.database_guard.databases' => ['PRODSRV'],
         'database.connections.oracle_service' => [
             'driver' => 'oracle',
             'host' => 'prod-db.example.com',
@@ -37,9 +37,9 @@ beforeEach(function () {
 });
 
 it('registers the guard config defaults', function () {
-    expect(config('kali-tools.production_database_guard.enabled'))->toBeTrue()
-        ->and(config('kali-tools.production_database_guard.allow_force'))->toBeFalse()
-        ->and(config('kali-tools.production_database_guard.commands'))->toContain('migrate', 'migrate:rollback', 'migrate:fresh', 'db:wipe');
+    expect(config('kali-tools.database_guard.enabled'))->toBeTrue()
+        ->and(config('kali-tools.database_guard.allow_force'))->toBeFalse()
+        ->and(config('kali-tools.database_guard.commands'))->toContain('migrate', 'migrate:rollback', 'migrate:fresh', 'db:wipe');
 });
 
 it('shows the connection details and aborts when an oracle host is production and the user declines', function () {
@@ -98,7 +98,7 @@ it('aborts with --force unless forcing is allowed', function () {
 
 it('skips the confirmation with --force when allowed', function () {
     config([
-        'kali-tools.production_database_guard.allow_force' => true,
+        'kali-tools.database_guard.allow_force' => true,
         'database.connections.testing.host' => 'prod-db.example.com',
     ]);
 
@@ -117,7 +117,7 @@ it('ignores commands that are not guarded', function () {
 
 it('can be disabled', function () {
     config([
-        'kali-tools.production_database_guard.enabled' => false,
+        'kali-tools.database_guard.enabled' => false,
         'database.connections.testing.host' => 'prod-db.example.com',
     ]);
 
@@ -126,8 +126,43 @@ it('can be disabled', function () {
         ->assertSuccessful();
 });
 
+it('checks the host and database fields of a mysql connection', function () {
+    config(['database.connections.mysql_prod' => [
+        'driver' => 'mysql',
+        'host' => 'mysql.internal',
+        'database' => 'PRODSRV',
+        'username' => 'MYSQL_USER',
+    ]]);
+
+    expect(fn () => $this->artisan('migrate', ['--database' => 'mysql_prod', '--no-interaction' => true])
+        ->expectsOutputToContain('MYSQL_USER')
+        ->run(),
+    )->toThrow(ProductionDatabaseCommandAborted::class);
+});
+
+it('only checks the fields configured for the connection driver', function () {
+    config([
+        'kali-tools.database_guard.fields.sqlite' => ['hosts' => [], 'databases' => ['database']],
+        'database.connections.testing.host' => 'prod-db.example.com',
+    ]);
+
+    $this->artisan('migrate', ['--database' => 'testing'])
+        ->doesntExpectOutputToContain('PRODUCTION database')
+        ->assertSuccessful();
+});
+
+it('falls back to the default fields for unlisted drivers', function () {
+    config(['database.connections.custom_prod' => [
+        'driver' => 'custom',
+        'write' => ['host' => ['prod-db.example.com']],
+    ]]);
+
+    expect(fn () => $this->artisan('migrate', ['--database' => 'custom_prod', '--no-interaction' => true])->run())
+        ->toThrow(ProductionDatabaseCommandAborted::class);
+});
+
 it('ships russian translations', function () {
     app()->setLocale('ru');
 
-    expect(trans('kali-tools::messages.production_database_guard.username'))->toBe('Пользователь');
+    expect(trans('kali-tools::messages.database_guard.username'))->toBe('Пользователь');
 });
