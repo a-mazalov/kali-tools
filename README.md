@@ -1,73 +1,66 @@
-# Laravel Package Skeleton
+<div align="center">
+    <h1>Kali Tools</h1>
+</div>
 
-A starter template for building beautiful Laravel packages.
+<p align="center">
+    <a href="https://packagist.org/packages/a-mazalov/kali-tools"><img src="https://img.shields.io/packagist/v/a-mazalov/kali-tools.svg?style=flat-square" alt="Packagist"></a>
+    <a href="https://packagist.org/packages/a-mazalov/kali-tools"><img src="https://img.shields.io/packagist/php-v/a-mazalov/kali-tools.svg?style=flat-square" alt="PHP from Packagist"></a>
+    <a href="https://packagist.org/packages/a-mazalov/kali-tools"><img src="https://badge.laravel.cloud/badge/a-mazalov/kali-tools?style=flat" alt="Laravel versions"></a>
+    <a href="https://github.com/a-mazalov/kali-tools/actions"><img alt="GitHub Workflow Status (main)" src="https://img.shields.io/github/actions/workflow/status/a-mazalov/kali-tools/tests.yml?branch=main&label=Tests&style=flat-square"></a>
+    <a href="https://packagist.org/packages/a-mazalov/kali-tools"><img src="https://img.shields.io/packagist/dt/a-mazalov/kali-tools.svg?style=flat-square" alt="Total Downloads"></a>
+</p>
 
-## Introduction
+Utilities for a Laravel Project
 
-This skeleton provides everything you need to start building a Laravel package. It comes pre-configured with a service provider, testing via Pest, static analysis via Larastan, code formatting via Pint, and a workbench application for end-to-end development — all wired up and ready to go.
+## Installation
 
-An interactive configuration script personalizes the skeleton for your package during `composer install`, setting up your namespace, service provider, and only the features you need.
-
-## Getting Started
-
-Press the **Use this template** button at the top of this repository to create your package, or clone it directly:
-
-```bash
-git clone https://github.com/laravel/package-skeleton.git my-package
-cd my-package
-```
-
-Then, install your dependencies. The interactive configuration script will run automatically:
+You can install the package via Composer:
 
 ```bash
-composer install
+composer require a-mazalov/kali-tools
 ```
 
-If you prefer to configure manually, install without scripts and run the configuration separately:
+You may publish all of the package's resources at once:
 
 ```bash
-composer install --no-scripts
-php configure.php
+php artisan vendor:publish --tag="kali-tools"
 ```
 
-Once configured, verify everything is working:
+Or, you may publish each resource individually:
+
+### Publishing the Configuration File
 
 ```bash
-composer test
+php artisan vendor:publish --tag="kali-tools-config"
 ```
 
-You may also boot the included workbench application to test your package end-to-end:
+### Publishing the Translations
 
 ```bash
-composer serve
+php artisan vendor:publish --tag="kali-tools-lang"
 ```
 
-The workbench app will be available at `http://localhost:8000`.
+## Usage
 
-## Non-Interactive Configuration
+<!-- Add a basic usage example here. -->
 
-The configuration script supports non-interactive mode for CI or scripted setups. Pass `--no-interaction` along with any metadata options you'd like to prefill:
+## Changelog
 
-```bash
-php configure.php --no-interaction --config --routes
-```
+Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
-Non-interactive mode also activates automatically when the `COMPOSER_NO_INTERACTION=1` environment variable is set, when an AI agent is detected, or when standard input is not an interactive terminal.
+## Contributing
 
-Omitting feature flags includes every package feature; passing specific flags includes only those features. Tools work the same way: omitting tool flags such as `--dependabot` or `--changelog` includes every tool, while passing specific flags includes only those tools.
+Thank you for considering contributing to Kali Tools! Please review our [contributing guide](.github/CONTRIBUTING.md) to get started.
 
-Since the default package description is empty, passing `--package-description` is recommended so the generated `composer.json` is ready to publish.
+## Security Vulnerabilities
 
-Non-interactive runs print a single line of JSON describing the result, including the resolved metadata, selected features and tools, and any manual follow-up steps. Invalid metadata options fail with a JSON error before any files are changed.
+Please review [our security policy](.github/SECURITY.md) on how to report security vulnerabilities.
 
-During configuration, `README_PACKAGE.md` and `AGENTS_PACKAGE.md` are customized and moved to `README.md` and `AGENTS.md`, replacing the skeleton files. The script also links `CLAUDE.md` to `AGENTS.md` and `.claude` to `.agents` so both agent formats share the same guidance.
+## Credits
 
-## After Setup
+- [a-mazalov](https://github.com/a-mazalov)
+- [All Contributors](../../contributors)
 
-A few GitHub settings need your attention after creating your package repository:
+## License
 
-- Review Dependabot pull requests before merging — this skeleton does not include an automatic merge workflow.
-- Create release-note labels: `breaking`, `enhancement`, `bug`, `documentation`, `dependencies`, `maintenance`, `skip-changelog`, and `duplicate`.
-- Review branch protection for `main` — changelog automation requires GitHub Actions to commit to `CHANGELOG.md` after a release.
-
-No additional repository secrets are required; the included workflows use GitHub's built-in `GITHUB_TOKEN`.
+Kali Tools is open-sourced software licensed under the [MIT license](LICENSE.md).

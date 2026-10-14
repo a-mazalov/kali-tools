@@ -1,18 +1,18 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "vendor-name/skeleton",
-    "description": "A Laravel package skeleton.",
+    "name": "a-mazalov/kali-tools",
+    "description": "Utilities for a Laravel Project",
     "keywords": [
-        "vendor-name",
         "laravel",
-        "skeleton"
+        "a-mazalov",
+        "kali-tools"
     ],
-    "homepage": "https://github.com/vendor-name/skeleton",
+    "homepage": "https://github.com/a-mazalov/kali-tools",
     "license": "MIT",
     "authors": [
         {
-            "name": "Author Name",
-            "email": "author@example.com",
+            "name": "a-mazalov",
+            "email": "mazalov.alexander@gmail.com",
             "role": "Developer"
         }
     ],
@@ -22,10 +22,7 @@
     },
     "require-dev": {
         "larastan/larastan": "^3.9",
-        "laravel/agent-detector": "^2.0",
-        "laravel/chisel": "^0.1",
         "laravel/pint": "^1.29",
-        "laravel/prompts": "^0.3",
         "laravel/pao": "^1.0",
         "orchestra/testbench": "^10.0||^11.0",
         "pestphp/pest": "^4.6||^5.0",
@@ -35,24 +32,18 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/"
+            "KaliTools\\KaliTools\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
+            "KaliTools\\KaliTools\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "scripts": {
-        "post-install-cmd": [
-            "@php configure.php"
-        ],
-        "post-update-cmd": [
-            "@php configure.php"
-        ],
         "post-autoload-dump": [
             "@clear",
             "@prepare"
@@ -96,10 +87,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "KaliTools\\KaliTools\\KaliToolsServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "KaliTools": "KaliTools\\KaliTools\\Facades\\KaliTools"
             }
         }
     },
