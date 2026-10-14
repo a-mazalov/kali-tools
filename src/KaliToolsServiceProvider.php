@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace KaliTools\KaliTools;
 
+use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use KaliTools\KaliTools\Console\Commands\KaliToolsCommand;
+use KaliTools\KaliTools\Listeners\ConfirmProductionDatabaseCommand;
 
 class KaliToolsServiceProvider extends ServiceProvider
 {
@@ -43,5 +46,7 @@ class KaliToolsServiceProvider extends ServiceProvider
         $this->commands([
             KaliToolsCommand::class,
         ]);
+
+        Event::listen(CommandStarting::class, ConfirmProductionDatabaseCommand::class);
     }
 }

@@ -22,9 +22,18 @@ Use this skill when a Laravel application needs to integrate the Kali Tools pack
 - confirm the app is a Laravel project
 - inspect the target code paths where the package should be applied
 
-### 2. Apply the package's public API
+### 2. Configure the production database guard
 
-Document how to integrate Kali Tools here, replacing this placeholder with the integration steps for your package.
+The guard is enabled automatically after `composer require a-mazalov/kali-tools`. It asks for an extra confirmation before `migrate`, `migrate:fresh`, `migrate:install`, `migrate:refresh`, `migrate:reset`, `migrate:rollback`, `db:seed`, and `db:wipe` run against a production connection, showing the connection, username, database, and host.
+
+- add production hosts and service names to `.env` (comma-separated, case-insensitive):
+  - `KALI_TOOLS_PRODUCTION_DB_HOSTS` matches `host`, `read.host`, `write.host`, and Oracle `tns` `HOST` entries
+  - `KALI_TOOLS_PRODUCTION_DB_SERVICES` matches Oracle `service_name`, `database`, and Oracle `tns` `SERVICE_NAME`/`SID` entries
+- set `KALI_TOOLS_PRODUCTION_DB_ALLOW_FORCE=true` only if deployment pipelines must run `migrate --force` against production without a prompt
+- set `KALI_TOOLS_PRODUCTION_DB_GUARD=false` to disable the guard
+- publish config with `php artisan vendor:publish --tag="kali-tools-config"` to change `production_database_guard.commands`
+
+Declined or non-interactive runs throw `KaliTools\KaliTools\Exceptions\ProductionDatabaseCommandAborted` and exit with a non-zero code before the database is touched.
 
 ## Rules, References, and Templates
 
@@ -34,8 +43,10 @@ Read before executing:
 
 ## Examples
 
-- describe a representative integration scenario for Kali Tools
+- Oracle production behind a TNS descriptor: set `KALI_TOOLS_PRODUCTION_DB_SERVICES=PRODSRV`; `php artisan migrate --database=oracle` now prompts before running.
+- CI deploy that runs `php artisan migrate --force` on production: set `KALI_TOOLS_PRODUCTION_DB_ALLOW_FORCE=true` in the production environment.
 
 ## Anti-patterns
 
 - do not document package internals here; keep the skill focused on adoption in Laravel apps
+- do not call `env()` for the guard lists in app code; use the `kali-tools.production_database_guard.*` config keys

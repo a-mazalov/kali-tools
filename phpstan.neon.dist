@@ -5,3 +5,5 @@ parameters:
         - config
         - routes
     tmpDir: build/phpstan
+    configDirectories:
+        - config

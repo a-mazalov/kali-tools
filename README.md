@@ -42,7 +42,46 @@ php artisan vendor:publish --tag="kali-tools-lang"
 
 ## Usage
 
-<!-- Add a basic usage example here. -->
+### Production Database Guard
+
+Once installed, the package listens for Artisan commands that change the database (`migrate`, `migrate:fresh`, `migrate:install`, `migrate:refresh`, `migrate:reset`, `migrate:rollback`, `db:seed`, `db:wipe`). When the command's connection (the `--database` option or `database.default`) points to a production database, the package prints the connection, username, database name, and host, then asks for an additional confirmation. If the confirmation is declined, or the command runs non-interactively, the command is aborted with a non-zero exit code before it touches the database.
+
+List production hosts and service names in your `.env` (comma-separated, case-insensitive):
+
+```dotenv
+KALI_TOOLS_PRODUCTION_DB_HOSTS=prod-db.example.com,10.0.0.5
+KALI_TOOLS_PRODUCTION_DB_SERVICES=PRODSRV,PRODDB
+```
+
+A connection is considered production when any of these match:
+
+- hosts: `host` (including arrays and `read`/`write` hosts) or `HOST` entries of an Oracle `tns` descriptor;
+- services: Oracle `service_name`, `database`, or `SERVICE_NAME`/`SID` entries of an Oracle `tns` descriptor.
+
+This works with Oracle connections configured for [`yajra/laravel-oci8`](https://github.com/yajra/laravel-oci8) as well as MySQL, MariaDB, PostgreSQL, and SQL Server connections.
+
+```text
+ WARN The [migrate] command is about to run against a PRODUCTION database.
+
+ Connection ........................................... oracle
+ Username ......................................... APP_OWNER
+ Database ............................................ PRODSRV
+ Host ................................... prod-db.example.com
+
+ Are you sure you want to run this command on the production database? (yes/no) [no]:
+```
+
+Other options:
+
+```dotenv
+# Disable the guard entirely.
+KALI_TOOLS_PRODUCTION_DB_GUARD=false
+
+# Let `--force` skip the confirmation, e.g. in deployment pipelines.
+KALI_TOOLS_PRODUCTION_DB_ALLOW_FORCE=true
+```
+
+To change the list of guarded commands, publish the configuration file and edit `production_database_guard.commands`. Messages are available in English and Russian and can be customized by publishing the translations.
 
 ## Changelog
 
